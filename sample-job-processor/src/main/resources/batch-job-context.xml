@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<bean id="jobIdToContextExecutionListener" class="tech.dynamo.processor.commons.batch.JobIdToContextExecutionListener"/>
+	
+	<bean id="startRunTasklet" class="tech.dynamo.processor.commons.batch.tasklet.StartRunTasklet" scope="step"/>
+	<bean id="endRunTasklet" class="tech.dynamo.processor.commons.batch.tasklet.EndRunTasklet" scope="step"/>
+	
+	<bean id="tradeRecordItemReader" class="tech.dynamo.processor.record.batch.TradeRecordItemReader" scope="step"/>
+	<bean id="tradeRecordItemWriter" class="tech.dynamo.processor.record.batch.TradeRecordItemWriter" scope="step"/>
+
+	<bean id="transferRecordItemReader" class="tech.dynamo.processor.record.batch.TransferRecordItemReader" scope="step"/>
+	<bean id="transferRecordItemProcessor" class="tech.dynamo.processor.record.batch.TransferRecordItemProcessor" scope="step"/>
+	<bean id="transferRecordItemWriter" class="tech.dynamo.processor.record.batch.TransferRecordItemWriter" scope="step"/>
+
+	
+	<batch:job id="jobRecordProcessorBatch">
+	
+		<!-- put jobId into parameters -->
+		<batch:listeners>
+			<batch:listener ref="jobIdToContextExecutionListener"/>					
+		</batch:listeners>
+		
+		<batch:step id="startRun_recordProcessorBatch" next="recordProcessorSplit">
+			<batch:tasklet ref="startRunTasklet"/>
+		</batch:step>
+
+<!-- 		<batch:step id="recordProcessorSplit" next="endRun_recordProcessorBatch"> -->
+<!-- 			<batch:tasklet> -->
+<!-- 				<batch:chunk reader="tradeRecordItemReader" writer="tradeRecordItemWriter" -->
+<!-- 					commit-interval="1" /> -->
+<!-- 			</batch:tasklet> -->
+<!-- 		</batch:step> -->
+		
+		<batch:split id="recordProcessorSplit" next="endRun_recordProcessorBatch">
+			<batch:flow>
+				<batch:step id="tradeStep_recordProcessor">
+					<batch:tasklet>
+						<batch:chunk reader="tradeRecordItemReader" writer="tradeRecordItemWriter" commit-interval="1"/>
+					</batch:tasklet>
+				</batch:step>
+			</batch:flow>
+ 			<batch:flow>
+				<batch:step id="transferStep_recordProcessor">
+					<batch:tasklet>
+						<batch:chunk reader="transferRecordItemReader" processor="transferRecordItemProcessor" writer="transferRecordItemWriter" commit-interval="1"/>
+					</batch:tasklet>
+				</batch:step>
+			</batch:flow> 
+		</batch:split>
+		
+		<batch:step id="endRun_recordProcessorBatch">
+			<batch:tasklet ref="endRunTasklet"/>
+		</batch:step>
+	</batch:job>
+
+</beans>
