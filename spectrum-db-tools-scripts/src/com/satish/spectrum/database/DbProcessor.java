@@ -12,8 +12,8 @@ import javax.xml.bind.DatatypeConverter;
 
 public class DbProcessor {
 	
-	final static String SQLlocal = "jdbc:mysql://localhost:3306/spectrum";
-	final static String SQLremote = "jdbc:mysql://104.196.8.3:3306/spectrum";
+	final static String SQLlocal = "";
+	final static String SQLremote = "";
     
 	static int          DBGlimit = 50000;
 	static Connection 	connection = null;
