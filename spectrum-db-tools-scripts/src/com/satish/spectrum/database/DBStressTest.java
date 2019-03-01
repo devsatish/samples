@@ -36,7 +36,7 @@ public class DBStressTest {
 	static String info;
 	static {
 		try {
-			connection = DriverManager.getConnection(dbString, "spectrum-dba", "$pecTRUM$dba");
+			connection = DriverManager.getConnection(dbString,"","")
 			connection.setAutoCommit(false);
 			emptyBlob = connection.createBlob();
 			emptyBlob.setBytes(1, "".getBytes());
